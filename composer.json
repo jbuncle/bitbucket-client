@@ -1,0 +1,25 @@
+{
+    "name": "jbuncle/bitbucket-client",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "JBuncle\\BitbucketClient\\": "src/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jbuncle/php-standards"
+        }
+    ],
+    "require-dev": {
+        "jbuncle/php-standards": "dev-master"
+    },
+    "authors": [
+        {
+            "name": "James Buncle",
+            "email": "jbuncle@hotmail.com"
+        }
+    ],
+    "require": {}
+}
