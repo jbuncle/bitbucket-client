@@ -12,7 +12,7 @@ return [
         "PhanUnreferencedUseNormal", // Doesn't work with @var 
         "PhanUndeclaredInterface", // Doesn't work correctly with using inteface from vendor
     ],
-    "target_php_version" => '7.1',
+    "target_php_version" => '7.4',
     'directory_list' => [
         'src',
         'examples',

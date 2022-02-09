@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace JBuncle\BitbucketClient\Client;
 
 use Generator;
@@ -27,7 +28,7 @@ class BitbucketClient {
         $endpoint = $this->getBaseUrlForRepo($repo) . "/pullrequests?q=" . urlencode($query);
 
         do {
-            $paginatedResponse = $this->api->paginatedRequest($endpoint);
+            $paginatedResponse = $this->api->paginatedGet($endpoint);
 
             foreach ($paginatedResponse->getValues() as $value) {
                 // TODO: introduce object
@@ -44,7 +45,37 @@ class BitbucketClient {
             int $pageLen = 50
     ): Iterator {
         $endpoint = $this->getBaseUrlForRepo($repo) . "/pullrequests/{$pullRequestId}/activity?pagelen=" . $pageLen;
-        $response = $this->api->request($endpoint);
+        $response = $this->api->get($endpoint);
+
+        // TODO: introduce object
+        return PullRequestActivity::fromJsonResponse($response);
+    }
+
+    public function createPullRequest(
+            string $repo,
+            string $sourceBranch,
+            string $destBranch,
+            string $title,
+            string $description
+    ): Iterator {
+
+        $prData = [
+            'title' => $title,
+            'description' => $description,
+            "source" => [
+                "branch" => [
+                    "name" => $sourceBranch,
+                ]
+            ],
+            "destination" => [
+                "branch" => [
+                    "name" => $destBranch,
+                ]
+            ]
+        ];
+
+        $endpoint = $this->getBaseUrlForRepo($repo) . "/pullrequests";
+        $response = $this->api->post($endpoint, $prData);
 
         // TODO: introduce object
         return PullRequestActivity::fromJsonResponse($response);

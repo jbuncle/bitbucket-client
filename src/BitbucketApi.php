@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace JBuncle\BitbucketClient;
 
 use Exception;
@@ -16,8 +17,8 @@ class BitbucketApi {
         $this->password = $password;
     }
 
-    public function paginatedRequest(string $requestUrl): PaginatedResponse {
-        $json = $this->curl($requestUrl);
+    public function paginatedGet(string $requestUrl): PaginatedResponse {
+        $json = $this->curlGet($requestUrl);
         if (array_key_exists('type', $json) && $json['type'] === 'error') {
             throw new Exception($json['error']['message'] . " '$requestUrl'");
         }
@@ -25,8 +26,16 @@ class BitbucketApi {
         return PaginatedResponse::fromJson($requestUrl, $json);
     }
 
-    public function request(string $requestUrl) {
-        $json = $this->curl($requestUrl);
+    /**
+     * Send a GET request to the Bitbucket API.
+     *
+     * @param string $requestUrl
+     *
+     * @return array<mixed>
+     * @throws Exception
+     */
+    public function get(string $requestUrl): array {
+        $json = $this->curlGet($requestUrl);
         if (array_key_exists('type', $json) && $json['type'] === 'error') {
             throw new Exception($json['error']['message']);
         }
@@ -35,12 +44,31 @@ class BitbucketApi {
     }
 
     /**
+     * Send a POST Request to the Bitbucket API.
      *
-     * @param string $path
-     * @return mixed
+     * @param string $requestUrl
+     * @param array<mixed> $data
+     *
+     * @return array<mixed>
+     *
      * @throws Exception
      */
-    private function curl(string $path) {
+    public function post(string $requestUrl, array $data): array {
+        $json = $this->curlPost($requestUrl, $data);
+        if (array_key_exists('type', $json) && $json['type'] === 'error') {
+            throw new Exception($json['error']['message']);
+        }
+
+        return $json;
+    }
+
+    /**
+     * 
+     * @param string $path
+     * @return array<mixed>
+     * @throws Exception
+     */
+    private function curlGet(string $path): array {
         $ch = curl_init();
         if ($ch === false) {
             throw new Exception("Failed to initialise CURL");
@@ -68,7 +96,42 @@ class BitbucketApi {
         curl_close($ch);
 
         $decoded = json_decode($result, true);
-        if ($decoded === null) {
+        if (!is_array($decoded)) {
+            throw new Exception('Failed to decode JSON');
+        }
+
+        return $decoded;
+    }
+
+    private function curlPost(string $path, array $data = []): array {
+        $ch = curl_init();
+        if ($ch === false) {
+            throw new Exception("Failed to initialise CURL");
+        }
+
+        $url = $this->getUrl($path);
+
+        $postData = json_encode($data);
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_USERPWD, $this->username . ':' . $this->password);
+
+        $result = curl_exec($ch);
+        if (curl_errno($ch)) {
+            throw new Exception('Error:' . curl_error($ch));
+        }
+
+        if (!is_string($result)) {
+            throw new Exception('Bad response');
+        }
+
+        curl_close($ch);
+
+        $decoded = json_decode($result, true);
+        if (!is_array($decoded)) {
             throw new Exception('Failed to decode JSON');
         }
 
