@@ -84,6 +84,11 @@ class BitbucketApi {
 
         curl_setopt($ch, CURLOPT_USERPWD, $this->username . ':' . $this->password);
 
+        $headers = [];
+        $headers[] = 'Accept: application/json';
+        $headers[] = 'Content-Type: application/json';
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
             throw new Exception('Error:' . curl_error($ch));
@@ -118,6 +123,11 @@ class BitbucketApi {
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
         curl_setopt($ch, CURLOPT_USERPWD, $this->username . ':' . $this->password);
+
+        $headers = [];
+        $headers[] = 'Accept: application/json';
+        $headers[] = 'Content-Type: application/json';
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
