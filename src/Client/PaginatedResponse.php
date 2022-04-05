@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace JBuncle\BitbucketClient\Client;
 
 class PaginatedResponse {
@@ -25,13 +26,19 @@ class PaginatedResponse {
             return null;
         }
 
-        $components = parse_url($requestUrl);
+        $components = parse_url($data['next']);
         if ($components === false) {
             return $data['next'];
         }
 
+        $path = (isset($components['path'])) ? $components['path'] : '';
+
+        if (strpos($path, '/api/2.0') === 0) {
+            $path = substr($path, strlen('/api/2.0'));
+        }
+
         $next = '';
-        $next .= (isset($components['path'])) ? $components['path'] : '';
+        $next .= $path;
         $next .= (isset($components['query'])) ? '?' . $components['query'] : '';
 
         if (isset($components['fragment'])) {

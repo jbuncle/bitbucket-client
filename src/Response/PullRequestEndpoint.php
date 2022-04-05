@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
+
 namespace JBuncle\BitbucketClient\Response;
 
-class PullRequestDestination {
+class PullRequestEndpoint {
 
     private array $data;
 
@@ -13,9 +14,11 @@ class PullRequestDestination {
         return $this->data['commit'];
     }
 
+
     public function getRepository(): array {
         return $this->data['repository'];
     }
+
 
     public function getBranch(): string {
         return $this->data['branch']['name'];

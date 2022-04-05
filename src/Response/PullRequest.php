@@ -17,12 +17,20 @@ class PullRequest {
     }
 
     public function getUrl(): string {
-        return '/' . $this->getOrganisation() .'/' . $this->getRepository() . '/pull-requests/' . $this->getId();
+        return '/' . $this->getOrganisation() . '/' . $this->getRepository() . '/pull-requests/' . $this->getId();
+    }
+
+    public function getSourceCommit(): string {
+        return $this->data['source']['commit']['hash'];
+    }
+
+    public function getDestinationCommit(): string {
+        return $this->data['destination']['commit']['hash'];
     }
 
     public function getOrganisation(): string {
 
-        $fullRepoName = $this->getSource()['repository']['full_name'];
+        $fullRepoName = $this->getSource()->getRepository()['full_name'];
         $parts = explode('/', $fullRepoName, 2);
 
         return $parts[0];
@@ -30,10 +38,10 @@ class PullRequest {
 
     public function getRepository(): string {
 
-        $fullRepoName = $this->getSource()['repository']['full_name'];
+        $fullRepoName = $this->getSource()->getRepository()['full_name'];
         $parts = explode('/', $fullRepoName, 2);
 
-        return $parts[count($parts) - 1];
+        return $parts[(count($parts) - 1)];
     }
 
     public function getDescription(): string {
@@ -56,8 +64,8 @@ class PullRequest {
         return $this->data['id'];
     }
 
-    public function getDestination(): PullRequestDestination {
-        return new PullRequestDestination($this->data['destination']);
+    public function getDestination(): PullRequestEndpoint {
+        return new PullRequestEndpoint($this->data['destination']);
     }
 
     public function getCreatedOn(): DateTime {
@@ -100,8 +108,8 @@ class PullRequest {
         return $this->data['closed_by'];
     }
 
-    public function getSource(): array {
-        return $this->data['source'];
+    public function getSource(): PullRequestEndpoint {
+        return new PullRequestEndpoint($this->data['source']);
     }
 
 }

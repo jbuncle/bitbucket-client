@@ -25,7 +25,24 @@ class BitbucketClient {
     ): Generator {
         $query = (string) $searchCondition;
 
-        $endpoint = $this->getBaseUrlForRepo($repo) . "/pullrequests?q=" . urlencode($query);
+        $endpoint = $this->getBaseUrlForRepo($repo) . '/pullrequests?q=' . urlencode($query);
+
+        do {
+            $paginatedResponse = $this->api->paginatedGet($endpoint);
+
+            foreach ($paginatedResponse->getValues() as $value) {
+                // TODO: introduce object
+                yield new PullRequest($value);
+            }
+
+            $endpoint = $paginatedResponse->next();
+        } while ($endpoint !== null);
+    }
+
+    public function getPullRequestsForUser(
+            string $usernameOrUid
+    ): Generator {
+        $endpoint = $this->getBaseUrl() . '/pullrequests/' . urlencode($usernameOrUid);
 
         do {
             $paginatedResponse = $this->api->paginatedGet($endpoint);
@@ -47,8 +64,33 @@ class BitbucketClient {
         $endpoint = $this->getBaseUrlForRepo($repo) . "/pullrequests/{$pullRequestId}/activity?pagelen=" . $pageLen;
         $response = $this->api->get($endpoint);
 
-        // TODO: introduce object
         return PullRequestActivity::fromJsonResponse($response);
+    }
+
+    public function getDiffStat(
+            string $repo,
+            string $startCommit,
+            string $endCommit
+    ): array {
+        $spec = "$startCommit..$endCommit";
+        $endpoint = $this->getBaseUrlForRepo($repo) . "/diffstat/$spec";
+        $response = $this->api->get($endpoint);
+
+        // TODO: introduce object
+        return $response;
+    }
+
+    public function getDiff(
+            string $repo,
+            string $startCommit,
+            string $endCommit
+    ): string {
+        $spec = "$startCommit..$endCommit";
+        $endpoint = $this->getBaseUrlForRepo($repo) . "/diff/$spec";
+        $response = $this->api->getRaw($endpoint);
+
+        // TODO: introduce object
+        return $response;
     }
 
     public function createPullRequest(
@@ -62,22 +104,22 @@ class BitbucketClient {
         $prData = [
             'title' => $title,
             'description' => $description,
-            "source" => [
-                "branch" => [
-                    "name" => $sourceBranch,
-                ]
+            'source' => [
+                'branch' => 
+                [
+                    'name' => $sourceBranch
+                ],
             ],
-            "destination" => [
-                "branch" => [
-                    "name" => $destBranch,
-                ]
-            ]
+            'destination' => [
+                'branch' => [
+                    'name' => $destBranch
+                ],
+            ],
         ];
 
-        $endpoint = $this->getBaseUrlForRepo($repo) . "/pullrequests";
+        $endpoint = $this->getBaseUrlForRepo($repo) . '/pullrequests';
         $response = $this->api->post($endpoint, $prData);
 
-        // TODO: introduce object
         return PullRequestActivity::fromJsonResponse($response);
     }
 
@@ -85,4 +127,7 @@ class BitbucketClient {
         return "/repositories/{$this->workspace}/{$repo}";
     }
 
+    private function getBaseUrl(): string {
+        return '/repositories';
+    }
 }
